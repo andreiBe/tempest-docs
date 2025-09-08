@@ -1,0 +1,1637 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Realm Console Commandant</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css"
+		/>
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			:root {
+				--pico-font-family: "Montserrat", sans-serif;
+				--color-primary: #428eb1;
+				--color-secondary: #7fa7be;
+				--color-background: #101013;
+				--pico-primary-500: var(--color-primary);
+				--pico-background-color: var(--color-background);
+				--pico-card-background-color: #1a1a1d;
+				--pico-text-color: #e0e6ed;
+				--pico-muted-color: #8b949e;
+				--pico-border-color: #30363d;
+			}
+
+			/* Base */
+			body {
+				background: var(--color-background);
+				color: var(--pico-text-color);
+				font-family: "Montserrat", sans-serif;
+				margin: 0;
+			}
+
+			/* Header */
+			.header {
+				background: linear-gradient(
+					135deg,
+					var(--color-primary) 0%,
+					var(--color-secondary) 100%
+				);
+				color: #fff;
+				padding: 2rem 1rem;
+				text-align: center;
+				margin: 0 0 2rem;
+			}
+
+			.header h1 {
+				margin: 0;
+				font-size: 2.5rem;
+				font-weight: 800;
+			}
+
+			.version-badge {
+				display: inline-block;
+				background: rgba(255, 255, 255, 0.22);
+				padding: 0.55rem 1rem;
+				border-radius: 1rem;
+				margin-top: 0.75rem;
+				font-weight: 600;
+				color: #fff;
+			}
+
+			/* Layout container */
+			.tab-container {
+				max-width: 1300px;
+				margin: 0 auto 4rem;
+				padding: 0 1.25rem 5rem;
+			}
+
+			/* Tabs */
+			.tabs {
+				display: flex;
+				gap: 0.5rem;
+				margin: 0 0 1.5rem;
+				overflow-x: auto;
+				border-bottom: 2px solid var(--pico-border-color);
+				padding-bottom: 0.25rem;
+			}
+
+			.tab {
+				background: none;
+				border: none;
+				padding: 0.95rem 1.4rem;
+				color: var(--pico-muted-color);
+				cursor: pointer;
+				font-weight: 600;
+				white-space: nowrap;
+				transition: all 0.18s ease;
+				border-bottom: 3px solid transparent;
+				font-size: 0.95rem;
+			}
+
+			/* Remove focus/outline that caused the top cutoff effect */
+			.tab:focus {
+				outline: none;
+				box-shadow: none;
+				border-color: transparent;
+			}
+
+			.tab:hover {
+				color: var(--pico-text-color);
+				background: rgba(255, 255, 255, 0.03);
+			}
+
+			.tab.active {
+				color: var(--color-primary);
+				border-bottom-color: var(--color-primary);
+			}
+
+			/* Tab contents */
+			.tab-content {
+				display: none;
+				animation: fadeIn 0.28s ease-in;
+			}
+
+			.tab-content.active {
+				display: block;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(8px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* Card - remove hover glow on whole card to stop random glows */
+			.card {
+				background: var(--pico-card-background-color);
+				border: 1px solid var(--pico-border-color);
+				border-radius: 0.75rem;
+				padding: 1.5rem 1.35rem 1.65rem;
+				margin-bottom: 1.6rem;
+				transition: border-color 0.18s ease;
+				position: relative;
+			}
+
+			/* Don't change border-color on hover for generic cards */
+			.card:hover {
+				/* intentionally empty to avoid random glow */
+			}
+
+			/* Slight hover only for clearly interactive elements */
+			.quick-command:hover {
+				border-color: var(--color-primary);
+				transform: translateY(-2px);
+			}
+
+			/* Typography & forms */
+			h3,
+			h4 {
+				margin: 0 0 0.85rem;
+				font-weight: 700;
+			}
+
+			p {
+				line-height: 1.6;
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+				gap: 1rem;
+				align-items: end;
+				margin-bottom: 1.15rem;
+			}
+
+			.inline-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+				gap: 1rem;
+				margin-bottom: 0.75rem;
+			}
+
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.45rem;
+			}
+
+			.form-group label {
+				font-size: 0.68rem;
+				font-weight: 600;
+				color: var(--pico-muted-color);
+				text-transform: uppercase;
+				letter-spacing: 0.09em;
+			}
+
+			select,
+			input[type="text"],
+			input[type="search"] {
+				background: var(--pico-card-background-color);
+				border: 1px solid var(--pico-border-color);
+				color: var(--pico-text-color);
+				padding: 0.65rem 0.75rem;
+				font-size: 0.9rem;
+				border-radius: 0.5rem;
+				font-family: inherit;
+			}
+
+			select:focus,
+			input:focus {
+				outline: none;
+				border-color: var(--color-primary);
+				box-shadow: 0 0 0 2px rgba(66, 142, 177, 0.18);
+			}
+
+			/* Command block and input+button placement */
+			.command-stack {
+				display: flex;
+				flex-direction: column;
+				gap: 0.7rem;
+			}
+
+			/* command-output is a container where input takes all available width and button is sized to content */
+			.command-output {
+				background: #0d1117;
+				border: 1px solid var(--pico-border-color);
+				border-radius: 0.6rem;
+				padding: 4px;
+				/* tighter so buttons look compact */
+				font-family:
+					"Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas,
+					monospace;
+				font-size: 0.85rem;
+				color: #7dd3fc;
+				word-break: break-all;
+				position: relative;
+				display: flex;
+				flex-direction: row;
+				gap: 0.5rem;
+				align-items: center;
+				width: 100%;
+				box-sizing: border-box;
+			}
+
+			.command-output input {
+				flex: 1;
+				min-width: 0;
+				/* allow input to shrink inside flex container */
+				background: transparent;
+				border: none;
+				padding: 6px 8px;
+				color: #7dd3fc;
+				font: inherit;
+				min-width: 60px;
+				height: 32px;
+				line-height: 1;
+			}
+
+			.command-output input:focus {
+				outline: none;
+				box-shadow: none;
+			}
+
+			/* Copy button: compact, solid color (no gradient), white text */
+			.copy-btn {
+				background: var(--color-primary);
+				border: 1px solid var(--color-primary);
+				color: #fff;
+				padding: 0;
+				height: 32px;
+				width: 32px;
+				border-radius: 0.28rem;
+				cursor: pointer;
+				font-weight: 600;
+				font-size: 15px;
+				/* emoji-friendly size */
+				letter-spacing: 0;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				transition:
+					background 0.18s,
+					transform 0.12s;
+				white-space: nowrap;
+				flex: 0 0 auto;
+				box-shadow: none;
+			}
+
+			.copy-btn:hover {
+				background: var(--color-secondary);
+				transform: translateY(-2px);
+			}
+
+			.copy-btn:active {
+				transform: translateY(0);
+			}
+
+			/* Quick commands grid */
+			.quick-command-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+				gap: 1rem;
+			}
+
+			.quick-command {
+				background: var(--pico-card-background-color);
+				border: 1px solid var(--pico-border-color);
+				border-radius: 0.65rem;
+				padding: 0.9rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.55rem;
+				transition:
+					border-color 0.25s,
+					transform 0.25s;
+			}
+
+			/* How-to adjustments: match other tabs (reduced padding) */
+			#how-to .card {
+				padding: 1rem 1rem;
+			}
+
+			/* Important note look */
+			.important-note {
+				background: rgba(245, 158, 11, 0.08);
+				border: 1px solid #f59e0b;
+				border-radius: 0.6rem;
+				padding: 0.9rem 1rem;
+				margin: 1.2rem 0;
+				color: #fbbf24;
+				font-size: 0.84rem;
+			}
+
+			/* Status bar */
+			.status-bar {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background: var(--pico-card-background-color);
+				border-top: 1px solid var(--pico-border-color);
+				padding: 0.85rem 1.15rem;
+				display: flex;
+				gap: 0.7rem;
+				align-items: center;
+				z-index: 1000;
+				font-size: 0.9rem;
+			}
+
+			.status-icon {
+				font-size: 1.2rem;
+				line-height: 1;
+			}
+
+			.status-message {
+				flex: 1;
+			}
+
+			.status-credit {
+				margin-left: auto;
+				font-weight: 600;
+				color: var(--pico-muted-color);
+				font-size: 0.9rem;
+			}
+
+			.status-success {
+				color: #22c55e;
+			}
+
+			.status-error {
+				color: #ef4444;
+			}
+
+			.status-warning {
+				color: #f59e0b;
+			}
+
+			.status-info {
+				color: var(--color-primary);
+			}
+
+			/* small responsive fixes */
+			@media (max-width: 840px) {
+				.header h1 {
+					font-size: 2.05rem;
+				}
+
+				.inline-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="header">
+			<h1>REALM CONSOLE COMMANDANT</h1>
+			<div class="version-badge">v7.2</div>
+		</div>
+
+		<div class="tab-container">
+			<div class="tabs" role="tablist" aria-label="Main sections">
+				<button class="tab active" data-tab="how-to" type="button">
+					📖 How to Use
+				</button>
+				<button class="tab" data-tab="offline-setup" type="button">
+					🗺️ Offline Setup
+				</button>
+				<button class="tab" data-tab="offline-tools" type="button">
+					🤖 Offline Tools
+				</button>
+				<button class="tab" data-tab="quick-commands" type="button">
+					⚡ Quick Commands
+				</button>
+			</div>
+
+			<section
+				id="how-to"
+				class="tab-content active instructions"
+				role="tabpanel"
+			>
+				<div class="card">
+					<h3>Welcome</h3>
+					<p>
+						This tool helps you easily set up and enjoy offline Paladins
+						matches.
+					</p>
+
+					<h3>First Time Setup</h3>
+					<ol>
+						<li>All standard maps are already included.</li>
+						<li>No folder selection required. Launch the game and proceed.</li>
+					</ol>
+
+					<h3>Starting a Match</h3>
+					<ol>
+						<li>Launch Paladins and wait at the login screen.</li>
+						<li>
+							Press <code>F1</code> or <code>F2</code> to open the console.
+						</li>
+						<li>Open the <strong>🗺️ Offline Setup</strong> tab here.</li>
+						<li>
+							Select Map, Map Version & Game Mode; copy the generated command.
+						</li>
+						<li>Paste it into the in-game console and press Enter.</li>
+					</ol>
+
+					<h3>Playing</h3>
+					<ol>
+						<li>After loading you'll be in spectator mode.</li>
+						<li>
+							Use the <strong>🤖 Offline Tools</strong> tab to switch your
+							champion.
+						</li>
+						<li>Spawn bots one-at-a-time using the spawn section.</li>
+					</ol>
+
+					<div class="important-note">
+						<strong>Important:</strong> Spawn each bot individually. Copy &
+						paste one command at a time.
+					</div>
+
+					<h3>Ending a Match</h3>
+					<p>
+						Use the <strong>Disconnect</strong> command under Quick Commands or
+						press <code>F1</code> at the end screen to return to login.
+					</p>
+
+					<div class="credits" style="margin-top: 1rem">
+						<strong>Original application created by ShadenXa.</strong>
+					</div>
+				</div>
+			</section>
+
+			<section id="offline-setup" class="tab-content" role="tabpanel">
+				<div class="card">
+					<h3>🗺️ Offline Match Setup</h3>
+					<p class="section-note">
+						Select a map, version and mode. Copy the command below.
+					</p>
+
+					<div class="form-grid">
+						<div class="form-group">
+							<label for="map-select">Map</label>
+							<select id="map-select"></select>
+						</div>
+						<div class="form-group">
+							<label for="version-select">Map Version</label>
+							<select id="version-select"></select>
+						</div>
+						<div class="form-group">
+							<label for="mode-select">Game Mode</label>
+							<select id="mode-select"></select>
+						</div>
+					</div>
+
+					<div class="command-stack">
+						<div class="form-group">
+							<label>Generated Offline Command</label>
+							<div class="command-output">
+								<input
+									id="offline-command-preview"
+									readonly
+									aria-label="Offline command preview"
+								/>
+								<button id="copy-offline" class="copy-btn" type="button">
+									📋
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section id="offline-tools" class="tab-content" role="tabpanel">
+				<div class="card">
+					<h3>🔄 Switch Champion</h3>
+					<p class="section-note">
+						Choose a champion & skin (optional). The preview updates
+						automatically.
+					</p>
+					<div class="inline-grid">
+						<div class="form-group">
+							<label for="switch-champ-select">Champion</label>
+							<select id="switch-champ-select"></select>
+						</div>
+						<div class="form-group">
+							<label for="switch-skin-select">Skin</label>
+							<select id="switch-skin-select"></select>
+						</div>
+					</div>
+
+					<!-- Preview moved to its own row (ensures it is on a new line) -->
+					<div class="form-group">
+						<label>Switch Command</label>
+						<div class="command-output">
+							<input
+								id="switch-preview"
+								readonly
+								aria-label="Switch champion command"
+							/>
+							<button id="copy-switch" class="copy-btn" type="button">
+								📋
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="card">
+					<h3>🤖 Spawn Bots</h3>
+					<p class="section-note">
+						Spawn one bot at a time. Choose team, champion & skin.
+					</p>
+					<div class="inline-grid">
+						<div class="form-group">
+							<label for="spawn-champ-select">Champion</label>
+							<select id="spawn-champ-select"></select>
+						</div>
+						<div class="form-group">
+							<label for="spawn-skin-select">Skin</label>
+							<select id="spawn-skin-select"></select>
+						</div>
+						<div class="form-group">
+							<label for="spawn-team-select">Team</label>
+							<select id="spawn-team-select">
+								<option value="1">Team 1 (Ally)</option>
+								<option value="2">Team 2 (Enemy)</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Spawn Command</label>
+						<div class="command-output">
+							<input
+								id="spawn-preview"
+								readonly
+								aria-label="Spawn bot command"
+							/>
+							<button id="copy-spawn" class="copy-btn" type="button">📋</button>
+						</div>
+					</div>
+
+					<div class="important-note">
+						Spawn each bot individually. After copying a command, paste it into
+						the in‑game console and press Enter before generating the next.
+					</div>
+				</div>
+			</section>
+
+			<section id="quick-commands" class="tab-content" role="tabpanel">
+				<div class="card">
+					<h3>⚡ Quick Commands</h3>
+					<p class="section-note">
+						Each utility command can be copied directly or edited slightly
+						before copying.
+					</p>
+					<div class="quick-command-grid" id="quick-list"></div>
+				</div>
+			</section>
+		</div>
+
+		<div class="status-bar" role="status" aria-live="polite">
+			<span id="status-icon" class="status-icon">ℹ️</span>
+			<span id="status-text" class="status-message status-info"
+				>Welcome to the Realm Console Commandant!</span
+			>
+			<span class="status-credit" id="status-credit" aria-label="Credits"
+				>Credits: ShadenXa</span
+			>
+		</div>
+
+		<script>
+			/* -- Data preserved from original -- */
+			const VERIFIED_MAPS = {
+				Abyss: ["TD_Abyss_P", "TD_AbyssLTM_P"],
+				"Ascension Peak": ["SG_AscensionPeak_P"],
+				Bazaar: ["SG_Bazaar_P"],
+				Brightmarsh: ["SG_Brightmarsh_P", "SGB_Brightmarsh_P"],
+				"Dragon Arena": ["LTM_DragonArena_P", "TD_DragonArena_P"],
+				"Fish Market": ["SG_FishMarket_P"],
+				"Foreman's Rise": [
+					"ON_ForemansRise_P",
+					"TD_ForemansRise_P",
+					"KOTH_Quarry_Rise",
+				],
+				"Frog Isle": ["SG_FrogIsle_V2_P"],
+				"Frozen Guard": ["SGA_SG_FrozenGuard_P"],
+				"Ice Mines": ["SG_IceMines_P"],
+				"Jaguar Falls": ["SG_JaguarFalls_Rework_P", "SGB_JaguarFalls_Rework_P"],
+				"Magistrate's Archives": [
+					"ON_MAv2_MagistratesArchives_P",
+					"TD_MagistratesArchives_P",
+				],
+				"Marauder's Port": ["ON_MaraudersPort_P"],
+				"Moss Garden": ["SG_TMossGarden_P"],
+				"Primal Court": ["ON_PrimalCourt_P"],
+				"Serpent Beach": ["SG_SerpentBeach_P", "SGB_SerpentBeach_P"],
+				"Shattered Desert": ["SG_ShatteredDesert_P"],
+				"Snowfall Junction": [
+					"ON_SnowfallJunction_P",
+					"KOTH_SnowfallJunction_P",
+					"TD_SnowfallJunction_P",
+				],
+				"Splitstone Quarry": [
+					"SG_SplitstoneQuarry_P",
+					"SGB_SplitstoneQuarry_P",
+				],
+				"Stone Keep": [
+					"SG_StoneKeep_P",
+					"SG_StoneKeep_V2_P",
+					"SG_StoneKeep_V2_DAY_P",
+					"TDM_StoneKeepCTF_P",
+				],
+				Throne: ["TD_Throne_P", "TD_Throne_NoTeeth_P"],
+				"Timber Mill": ["SG_TimberMill_P", "SGA_TimberMill_New_P"],
+				"Trade District": ["SG_TBogDistrict_P"],
+				"Warder's Gate": ["SG_WardersGate_P", "SG_WardersGateV2_P"],
+			};
+			const OFFLINE_GAMEMODES = { Siege: "TgGame.TgGame_Paladins_Siege" };
+			const CHAMPIONS = [
+				"Androxus",
+				"Ash",
+				"Atlas",
+				"Azaan",
+				"Barik",
+				"Betty",
+				"Bomb King",
+				"Buck",
+				"Caspian",
+				"Cassie",
+				"Corvus",
+				"Dredge",
+				"Drogoz",
+				"Evie",
+				"Fernando",
+				"Furia",
+				"Grohk",
+				"Grover",
+				"Horse",
+				"Imani",
+				"Inara",
+				"Io",
+				"Jenos",
+				"Kasumi",
+				"Khan",
+				"Kinessa",
+				"Koga",
+				"Lex",
+				"Lian",
+				"Lillith",
+				"Maeve",
+				"Makoa",
+				"Mal'Damba",
+				"Moji",
+				"Nyx",
+				"Octavia",
+				"Omen",
+				"Pip",
+				"Raum",
+				"Rei",
+				"Ruckus",
+				"Saati",
+				"Seris",
+				"Seven",
+				"Sha Lin",
+				"Skye",
+				"Strix",
+				"Talus",
+				"Terminus",
+				"Tiberius",
+				"Torvald",
+				"Tyra",
+				"Vatu",
+				"Viktor",
+				"Vivian",
+				"Vora",
+				"Willo",
+				"Yagorath",
+				"Ying",
+				"Zhin",
+			].sort();
+			const CHAMPION_SKINS = {
+				Androxus: {
+					Default: 11488,
+					Exalted: 12199,
+					Fallen: 23193,
+					Golden: 23263,
+					Huntsman: 22836,
+					Imperator: 23189,
+					Obsidian: 19124,
+					Sanguine: 13309,
+					"Stage 4": 13266,
+					"Steam Demon": 25956,
+					Wraith: 15144,
+					X: 13265,
+				},
+				Ash: {
+					Default: 10739,
+					"Draconian Huntress": 31570,
+					Golden: 23264,
+					Hellion: 18865,
+					Obsidian: 21281,
+					Ronin: 25821,
+					"Ska'drin": 24975,
+					Tempered: 18864,
+					"Xeno-Buster": 22846,
+				},
+				Atlas: {
+					Default: 11286,
+					Corrupted: 30822,
+					Golden: 23440,
+					Legionnaire: 24369,
+					Vile: 30823,
+				},
+				Azaan: {
+					Default: 12196,
+					"Dark Drake": 27943,
+					Forgemaster: 27778,
+					Golden: 27731,
+					"Kingdom's End": 27778,
+				},
+				Barik: {
+					Default: 10738,
+					Cosmic: 22772,
+					"Dragon Forged": 24641,
+					Foreman: 15225,
+					Golden: 23141,
+					"Hi-Tek": 22574,
+					Obsidian: 19768,
+					"Spec Ops": 12783,
+					"Steel Forged": 24542,
+					"Stone-Cut": 22538,
+					Swashbuckler: 25841,
+					"Team Fortress 2": 14870,
+					Tinkerer: 13314,
+				},
+				Betty: {
+					Default: 10739,
+					Dragonette: 30834,
+					Golden: 30669,
+					"Queen of Diamonds": 30606,
+					"Royal Explosive": 27958,
+				},
+				"Bomb King": {
+					Default: 10739,
+					"A-bomb-inable": 21466,
+					"Biz-King": 25833,
+					Cosmic: 19422,
+					"Crash King 47": 30631,
+					"Crash King 48": 30623,
+					Digitized: 26480,
+					Golden: 23142,
+					"Honey King": 26655,
+					"Love Machine": 22668,
+					Monarch: 14359,
+					Obsidian: 19414,
+					"Polar Bear": 26680,
+					Pumpking: 25758,
+					"Twitch Prime King": 14998,
+				},
+				Buck: {
+					Default: 11286,
+					Buckules: 23677,
+					"Buck Wild": 25870,
+					Commando: 13273,
+					Cosmic: 19126,
+					Envy: 15636,
+					Golden: 23164,
+					Kingpin: 15602,
+					Obsidian: 19126,
+					Ripjaw: 27166,
+					Triggerman: 25776,
+				},
+				Caspian: {
+					Default: 12196,
+					"Change of Heart": 27995,
+					"Free Spirit": 24982,
+					Golden: 23993,
+					"Long Live the King": 31157,
+					"Pride of the Realm": 31157,
+					"Skull And Bones": 24994,
+				},
+				Cassie: {
+					Default: 10740,
+					"Blood Moon": 25939,
+					Copacabana: 23947,
+					Cosmic: 19546,
+					Dragoncaller: 23397,
+					"Dune Crawler": 25700,
+					Golden: 23145,
+					"Night Bane": 12616,
+					"Northern Watch": 12786,
+					Obsidian: 19544,
+					"Sun Kissed": 18846,
+					Timber: 13193,
+					"WHIPPED CREAM": 29972,
+				},
+				Corvus: {
+					Default: 12196,
+					"Abyssal Acolyte": 25497,
+					Count: 27440,
+					"Crimson Crow": 32333,
+					"Eternal Waltz": 32340,
+					Exemplar: 25479,
+					"Midnight Royal": 27580,
+					"Pyre-Lord Magnus": 25493,
+					"Qrow Branwen": 30959,
+				},
+				Dredge: {
+					Default: 10739,
+					"Bare Bones": 27506,
+					Buccaneer: 22039,
+					Golden: 23813,
+					Merrymaker: 23935,
+					Omega: 24001,
+				},
+				Drogoz: {
+					Default: 13350,
+					"Abyssal Lord": 23191,
+					Cosmic: 18680,
+					Dreadhunter: 25802,
+					"DZ-03 Draco": 25818,
+					Freegle: 26300,
+					Golden: 23163,
+					"HRX 2018": 23696,
+					Obsidian: 18679,
+					"Pyre Warrior": 24648,
+					Terrormorph: 26016,
+					Tyrant: 14132,
+				},
+				Evie: {
+					Default: 10744,
+					Bewitching: 23743,
+					"Black Ice": 13266,
+					Cosmic: 19054,
+					Golden: 23268,
+					Merrymaker: 15863,
+					Obsidian: 19054,
+					"Star Glam": 25811,
+					"Sweet Shop": 27341,
+					Toothache: 27341,
+					Troublemaker: 25838,
+				},
+				Fernando: {
+					Default: 10745,
+					"Beach Bash": 24715,
+					Cosmic: 19416,
+					"Dark Guardian": 26714,
+					Digitized: 24265,
+					Enforcer: 23543,
+					"FN-01 Erebos": 19538,
+					"FN-01 Helios": 25954,
+					"God of War": 12785,
+					Golden: 23149,
+					Invitational: 25795,
+					Knightmare: 23590,
+					Obsidian: 19416,
+					Onslaught: 12784,
+					Sanguine: 23735,
+				},
+				Furia: {
+					Default: 10739,
+					Aurora: 25260,
+					"Battlesuit Angel": 23946,
+					Coldsnap: 23884,
+					Dragonslayer: 25418,
+					Golden: 23074,
+					"Iron Maiden": 23419,
+					Solfire: 25413,
+					"Soul-Stealer": 25028,
+					"Weiss Schnee": 27923,
+				},
+				Grohk: {
+					Default: 10743,
+					Beast: 15559,
+					Brimstone: 13129,
+					Chieftain: 24023,
+					Cosmic: 21109,
+					Golden: 23272,
+					"Neon Demon": 23079,
+					Obsidian: 20238,
+					Tribesman: 13264,
+				},
+				Grover: {
+					Default: 12923,
+					Blightbark: 22527,
+					"Doom Shroom": 25861,
+					GR0B0T: 24558,
+					Golden: 23273,
+					"Soul Briar": 24977,
+					Winter: 15616,
+				},
+				Horse: { Default: 11512 },
+				Imani: {
+					Default: 12196,
+					"Dragon Forged": 24552,
+					"E-mani": 26915,
+					Genesis: 26916,
+					Golden: 23859,
+					Omega: 24269,
+					Snowdrift: 24123,
+					"Steel Forged": 24943,
+					"Stellar Sorceress": 26475,
+					Warder: 24124,
+					"Yang Xiao Long": 30916,
+				},
+				Inara: {
+					Default: 12196,
+					Cosmic: 19547,
+					Defragged: 30976,
+					Digitized: 24264,
+					Golden: 23274,
+					"Ice Walker": 23739,
+					"Iron Madam": 24748,
+					"Lady Liberty": 27174,
+					Obsidian: 19546,
+					"Stellar Sentinel": 26413,
+					Sunstone: 25404,
+				},
+				Io: {
+					Default: 12196,
+					Corrupted: 30828,
+					"Eight Oceans": 24903,
+					Feral: 24520,
+					"Frozen Moon": 30829,
+					Golden: 24608,
+					"Pirate's Treasure": 24911,
+					Salt: 27444,
+					Starfall: 24520,
+					"Stellar Protector": 26411,
+				},
+				Jenos: {
+					Default: 12196,
+					Aspirant: 26659,
+					Cosmic: 21201,
+					"Dark Fervor": 26845,
+					Eclipse: 25986,
+					"Eternal Fervor": 26845,
+					Exarch: 22855,
+					Gentleman: 24260,
+					Golden: 23168,
+					Mernos: 27353,
+					Obsidian: 20199,
+					Remix: 23845,
+					Resplendent: 19520,
+					"Soul Eater": 23032,
+				},
+				Kasumi: {
+					Default: 27494,
+					"Evil Spirit": 24912,
+					Golden: 31325,
+					Lovestruck: 31564,
+					Spirited: 31418,
+				},
+				Khan: {
+					Default: 12196,
+					"Ameri-Khan": 23332,
+					"Dark Guardian": 26714,
+					"Draconic Enforcer": 25315,
+					"Eternal Guardian": 26712,
+					Golden: 23276,
+					Ironscale: 27155,
+					"Justin OH": 28239,
+					Legionnaire: 24369,
+					Mixer: 23681,
+					Overlord: 25346,
+					Safecracker: 24636,
+					"VIP Justin OH": 30617,
+				},
+				Kinessa: {
+					Default: 12964,
+					Atomic: 22533,
+					"Battlesuit Eagle Eye": 26382,
+					Cosmic: 19545,
+					Cutthroat: 14274,
+					Dunestrider: 30832,
+					Golden: 23165,
+					"Nova Strike": 25819,
+					Obsidian: 19545,
+					"Shore Patrol": 24711,
+					"Star Silver": 19542,
+					Valentina: 27295,
+					Viking: 15563,
+				},
+				Koga: {
+					Default: 12196,
+					"Beach Bash": 24717,
+					"Bloody Bakemono": 26542,
+					Bossfight: 29975,
+					Cosmic: 22026,
+					"Dark Retribution": 26841,
+					"Dragon Fangs": 27901,
+					"Eternal Retribution": 27901,
+					Exile: 23476,
+					Golden: 23477,
+					Omega: 24908,
+					Prototype: 23593,
+					"Shore Patrol": 24570,
+				},
+				Lex: {
+					Default: 10739,
+					"Bounty Hunter": 24634,
+					"Covert Ops": 23185,
+					Golden: 25900,
+					Headhunter: 24779,
+					"L-Exo Suit": 26037,
+					Longboard: 18843,
+					Obsidian: 18643,
+					Peacekeeper: 16951,
+					Renegade: 20823,
+					Sarrada: 23554,
+					Yasamin: 27297,
+				},
+				Lian: {
+					Default: 12196,
+					"Beach Bash": 24713,
+					"Dark Conflict": 26857,
+					"Dark Monarch": 24913,
+					"Death-Goddess": 25039,
+					Dusk: 19316,
+					"Eternal Conflict": 24645,
+					"Galactic Scion": 25851,
+					Goddess: 25857,
+					Golden: 24668,
+					"High Elf": 25418,
+					Merrymaker: 23865,
+					Peridot: 19315,
+					"Shore Patrol": 24569,
+					Soulweaver: 31148,
+					Veridian: 19314,
+				},
+				Lillith: {
+					Default: 12196,
+					Golden: 30857,
+					"Stellar Witch": 30961,
+					"Sun Born": 27902,
+					"Wicked Hex": 27899,
+				},
+				Maeve: {
+					Default: 12196,
+					"Alley Cat": 22542,
+					Cammie: 27288,
+					Cosmic: 18651,
+					Demonette: 23192,
+					Dreamhack: 19061,
+					"Eight Oceans": 24904,
+					"Emerald Bandit": 22503,
+					Golden: 23150,
+					Merrymaker: 23889,
+					Obsidian: 18649,
+					"Pirate's Treasure": 24591,
+					Raeve: 25816,
+					Schoolyard: 27887,
+					"Street Style": 24577,
+					Strike: 23208,
+					"Study Hall": 27916,
+					"Temple Raider": 22502,
+				},
+				Makoa: {
+					Default: 10739,
+					Akuma: 23414,
+					Cosmic: 18693,
+					Cuddly: 26045,
+					Dutchman: 26068,
+					Golden: 23159,
+					Obsidian: 18693,
+					Plushy: 26042,
+					Prosperous: 25682,
+					Volcanic: 18888,
+				},
+				"Mal'Damba": {
+					Default: 10739,
+					Chancellor: 22521,
+					Cosmic: 19065,
+					Cursed: 15425,
+					Defiler: 25771,
+					"Dragon Forged": 24552,
+					Golden: 23170,
+					Hexer: 15423,
+					Obsidian: 19063,
+					"Shadow Lord": 23409,
+					Shiro: 26703,
+					"Steel Forged": 24551,
+					Wickerman: 19752,
+				},
+				Moji: {
+					Default: 12196,
+					Cosmic: 22084,
+					Cuddly: 24547,
+					Dragonborn: 24555,
+					Golden: 22083,
+					Obsidian: 22083,
+					PEEKABOO: 27889,
+					Plum: 21135,
+					"Rose Petal": 21131,
+				},
+				Nyx: {
+					Default: 12196,
+					"Crimson Queen": 31829,
+					"Divine Matriarch": 31831,
+					Golden: 31833,
+				},
+				Octavia: {
+					Default: 12196,
+					Beachside: 27172,
+					Commander: 27173,
+					"Freedom Fighter": 27183,
+					Golden: 27069,
+					Maverick: 27063,
+				},
+				Omen: { Default: 26324 },
+				Pip: {
+					Default: 12198,
+					Arctic: 23502,
+					Cosmic: 19958,
+					Golden: 23281,
+					Invader: 25864,
+					"Mad Scientist": 25647,
+					Obsidian: 19957,
+					Pandamonium: 25909,
+					Raider: 25693,
+					Sulfur: 13277,
+					Tactical: 13276,
+				},
+				Raum: {
+					Default: 12196,
+					"Abyssal Lord": 25982,
+					"Crypt Guardian": 24206,
+					"Eternal Devilry": 31557,
+					Golden: 24946,
+					Heatsink: 26908,
+					Kraumpus: 27064,
+					"R.O.M.": 26885,
+					Subjugator: 24983,
+					"The Harlequin": 31556,
+					"Undead Colossus": 24209,
+				},
+				Rei: {
+					Default: 12196,
+					"Beach Bunny": 27368,
+					"Class President": 27942,
+					Golden: 27370,
+					Harvest: 27369,
+					"Pumpkin Patch": 27519,
+					Valedictorian: 27981,
+				},
+				Ruckus: {
+					Default: 11287,
+					"B.E.T.A.": 25699,
+					Cosmic: 19545,
+					"Eight Oceans": 24905,
+					Golden: 23164,
+					"H.A.W.K.": 25773,
+					Obsidian: 19545,
+					"Pirate's Treasure": 24593,
+					"Robo Force": 23420,
+					"Star Slayer": 25775,
+				},
+				Saati: {
+					Default: 12196,
+					"Crimson Tide": 27555,
+					Golden: 27599,
+					"Hot Shot": 27539,
+					"Iced Out": 27540,
+					"Sea Queen": 27436,
+					"Wings of Carnage": 31786,
+					"Wings of Darkness": 31772,
+				},
+				Seris: {
+					Default: 12196,
+					Cottontail: 26423,
+					Cosmic: 19698,
+					Divine: 26168,
+					"Doom Bringer": 31767,
+					"Expo 2018": 19890,
+					"Flame Bringer": 31770,
+					Golden: 23171,
+					Infernal: 26074,
+					"Jade Priestess": 26237,
+					Madame: 26183,
+					Obsidian: 19697,
+					Remix: 23854,
+					"Stellar Mender": 26401,
+					Taboo: 18193,
+				},
+				Seven: { Default: 12196 },
+				"Sha Lin": {
+					Default: 10739,
+					Bravado: 15762,
+					Burrito: 25825,
+					"Crime Fighter": 24749,
+					Golden: 23166,
+					Guardian: 25951,
+					Omega: 24265,
+					Outlaw: 23450,
+					Vigilante: 25877,
+				},
+				Skye: {
+					Default: 10739,
+					Academic: 25484,
+					Blush: 15414,
+					Chrome: 25776,
+					Cosmic: 19412,
+					Devilish: 27578,
+					"GG Magree": 29970,
+					Golden: 23173,
+					Heartbreaker: 26042,
+					Kunoichi: 26012,
+					Obsidian: 19412,
+					Operative: 13263,
+					"Pilot Suit": 25953,
+					Temptress: 27441,
+					Twilight: 23489,
+					"VIP GG Magree": 30570,
+				},
+				Strix: {
+					Default: 12196,
+					Coldsnap: 22530,
+					Cosmic: 21200,
+					Dragonsbane: 27512,
+					Golden: 23169,
+					Hustler: 24645,
+					Infiltrator: 22804,
+					Mercenary: 25785,
+					Obsidian: 21200,
+					Raven: 25780,
+					Redux: 23927,
+					Remix: 23693,
+					Scalebane: 27500,
+					Switch: 23320,
+					Swindler: 24646,
+				},
+				Talus: {
+					Default: 10739,
+					Cosmic: 21199,
+					Geist: 25850,
+					Golden: 22530,
+					Obsidian: 21199,
+					Oni: 25805,
+					"Trick or Treat": 23643,
+					Wukong: 24919,
+				},
+				Terminus: {
+					Default: 12196,
+					Abominable: 23892,
+					Cosmic: 21199,
+					Golden: 23291,
+					Jotunn: 23739,
+					Monolith: 19556,
+					Omega: 24003,
+					"Steel Forged": 24524,
+				},
+				Tiberius: {
+					Default: 12196,
+					"Aka Oni": 31146,
+					"Aoi Oni": 31151,
+					"Beast Slayer": 24885,
+					Golden: 24210,
+					Lifeguard: 27168,
+					Nightstalker: 24884,
+					"Sphinx Soldier": 24173,
+					"Tomb Keeper": 23583,
+				},
+				Torvald: {
+					Default: 10739,
+					Arcanist: 15926,
+					Berserker: 26361,
+					Clockwork: 25988,
+					Cosmic: 19784,
+					"Dark Lord": 25703,
+					Golden: 23172,
+					Historian: 15924,
+					Obsidian: 19783,
+					Revenant: 27500,
+				},
+				Tyra: {
+					Default: 12196,
+					Archangel: 23184,
+					Bandit: 24638,
+					Baroness: 15771,
+					Cosmic: 18678,
+					"Dire Wolf": 26033,
+					"Draconic Fighter": 25455,
+					Drakefire: 23421,
+					"Eternal Emissary": 31566,
+					Firebrand: 26651,
+					Frostbrand: 26662,
+					Golden: 23171,
+					Gunslinger: 24638,
+					Heartbreaker: 24406,
+					"Hunter's Bane": 25457,
+					Lotus: 26186,
+					Marauder: 27439,
+					Obsidian: 18678,
+					"Red Winter": 26034,
+					"Royal Marque": 27557,
+				},
+				Vatu: {
+					Default: 12196,
+					"Abyss Cultist": 26821,
+					Duty: 27212,
+					Golden: 27213,
+					Mayhem: 27357,
+					Sorrow: 27206,
+				},
+				Viktor: {
+					Default: 14172,
+					Chase: 27292,
+					"Code Green": 15809,
+					Cosmic: 18698,
+					"Draconic Fighter": 25455,
+					"Full Moon": 23608,
+					Golden: 23173,
+					Gunslinger: 23173,
+					"Hunter's Bane": 25457,
+					Invitational: 25791,
+					Legionnaire: 24015,
+					Obsidian: 18698,
+					Rambo: 27945,
+					Reaver: 25821,
+					"Soldier +": 13177,
+					"V1-KTOR": 26141,
+				},
+				Vivian: {
+					Default: 12196,
+					Contessa: 23741,
+					"Day Walker": 23588,
+					"Full Throttle": 22551,
+					Golden: 20327,
+					Novice: 26658,
+					Omega: 24091,
+					Retro: 31780,
+					Sigma: 27448,
+					"Student of Magic": 26653,
+				},
+				Vora: {
+					Default: 12196,
+					"Danse Macabre": 32331,
+					"Galactic Conqueror": 26364,
+					Golden: 23339,
+					"Honor Guard": 23334,
+					"Patchwork Assassin": 32338,
+					"Ruby Rose": 27925,
+					"Seal Guardian": 23332,
+				},
+				Willo: {
+					Default: 12196,
+					Bluebell: 18313,
+					Cosmic: 19128,
+					Firecracker: 25841,
+					Golden: 23173,
+					Hemlock: 23645,
+					"Jolly Holly": 23391,
+					Lilac: 18312,
+					Obsidian: 19128,
+					"Sugar Plum": 23882,
+					Viceroy: 15687,
+					"Will.0": 27940,
+					"Yellow Jacket": 30986,
+				},
+				Yagorath: {
+					Default: 12196,
+					Caustic: 26831,
+					Cuddly: 30988,
+					Golden: 26921,
+					Graveworm: 26834,
+					Leviathan: 27441,
+				},
+				Ying: {
+					Default: 13299,
+					Banshee: 23719,
+					Carnival: 26042,
+					"Convention 2017": 15867,
+					Cosmic: 19096,
+					"Death Speaker": 22728,
+					"Divine Daughter": 25265,
+					"Full Dive": 26917,
+					Genie: 22020,
+					Golden: 23174,
+					"High Priestess": 22516,
+					Jurassic: 27900,
+					Mermaid: 24589,
+					Mystic: 13496,
+					Obsidian: 19096,
+					Quicksilver: 25942,
+					Replicant: 25997,
+					Siren: 24874,
+					Snapdragon: 15554,
+					"Street Style": 24586,
+				},
+				Zhin: {
+					Default: 12196,
+					Conqueror: 25819,
+					"Dark Lord": 25819,
+					"Demon Slayer": 23507,
+					"Ebon Star": 26053,
+					"Forest Stalker": 26660,
+					Golden: 23298,
+					Kazu: 28286,
+					Mei: 30982,
+					Nomad: 19085,
+					Omega: 24265,
+					Underkeeper: 26674,
+					Warlord: 19084,
+				},
+			};
+			const QUICK_COMMANDS = [
+				{ name: "🛡️ God Mode", command: "god" },
+				{ name: "❄️ No Cooldowns", command: "cooldown" },
+				{ name: "⚡ Fill Ultimate", command: "fillenergy" },
+				{ name: "👻 Ghost Mode", command: "ghost" },
+				{ name: "🚶 Normal Mode", command: "walk" },
+				{ name: "🥶 Freeze All Bots", command: "freezeai" },
+				{ name: "🐴 Allow Mount", command: "allowmount 1" },
+				{ name: "📷 Third Person", command: "set3p" },
+				{ name: "📸 First Person", command: "set1p" },
+				{ name: "🚪 Disconnect", command: "disconnect" },
+			];
+
+			/* -- Elements -- */
+			const els = {
+				tabs: document.querySelectorAll(".tab"),
+				tabContents: document.querySelectorAll(".tab-content"),
+				mapSelect: document.getElementById("map-select"),
+				versionSelect: document.getElementById("version-select"),
+				modeSelect: document.getElementById("mode-select"),
+				offlinePreview: document.getElementById("offline-command-preview"),
+				copyOffline: document.getElementById("copy-offline"),
+				switchChamp: document.getElementById("switch-champ-select"),
+				switchSkin: document.getElementById("switch-skin-select"),
+				switchPreview: document.getElementById("switch-preview"),
+				copySwitch: document.getElementById("copy-switch"),
+				spawnChamp: document.getElementById("spawn-champ-select"),
+				spawnSkin: document.getElementById("spawn-skin-select"),
+				spawnTeam: document.getElementById("spawn-team-select"),
+				spawnPreview: document.getElementById("spawn-preview"),
+				copySpawn: document.getElementById("copy-spawn"),
+				quickList: document.getElementById("quick-list"),
+				statusIcon: document.getElementById("status-icon"),
+				statusText: document.getElementById("status-text"),
+			};
+			let statusTimer;
+			function setStatus(msg, type = "info") {
+				const icons = { success: "✅", error: "❌", warning: "⚠️", info: "ℹ️" };
+				els.statusIcon.textContent = icons[type] || "ℹ️";
+				els.statusText.textContent = msg;
+				els.statusText.className = `status-message status-${type}`;
+				clearTimeout(statusTimer);
+				if (type !== "info")
+					statusTimer = setTimeout(() => setStatus("Ready", "info"), 3500);
+			}
+			window.updateStatusBar = setStatus;
+
+			function fillSelect(sel, items) {
+				sel.innerHTML = items
+					.map((i) => `<option value="${i}">${i}</option>`)
+					.join("");
+			}
+
+			function updateVersionOptions() {
+				const map = els.mapSelect.value;
+				const versions = VERIFIED_MAPS[map] || [];
+				fillSelect(els.versionSelect, versions);
+				updateOfflinePreview();
+			}
+			function updateOfflinePreview() {
+				const version = els.versionSelect.value;
+				const modeKey = els.modeSelect.value;
+				const mode = OFFLINE_GAMEMODES[modeKey];
+				els.offlinePreview.value =
+					version && mode ? `switchlevel ${version}?game=${mode}` : "";
+			}
+
+			function updateSwitchSkins() {
+				const champ = els.switchChamp.value;
+				const skinsObj = CHAMPION_SKINS[champ] || {};
+				const names = Object.keys(skinsObj);
+				const ordered = [
+					"Default",
+					...names.filter((n) => n !== "Default").sort(),
+				];
+				fillSelect(els.switchSkin, ordered);
+				updateSwitchPreview();
+			}
+			function updateSwitchPreview() {
+				const champ = els.switchChamp.value;
+				const skin = els.switchSkin.value;
+				let cmd = `switchclass ${champ}`;
+				if (skin && skin !== "Default") cmd += ` "${skin}"`;
+				els.switchPreview.value = cmd;
+			}
+
+			function updateSpawnSkins() {
+				const champ = els.spawnChamp.value;
+				const skinsObj = CHAMPION_SKINS[champ] || {};
+				const names = Object.keys(skinsObj);
+				const ordered = [
+					"Default",
+					...names.filter((n) => n !== "Default").sort(),
+				];
+				fillSelect(els.spawnSkin, ordered);
+				updateSpawnPreview();
+			}
+			function updateSpawnPreview() {
+				const champ = els.spawnChamp.value;
+				const skinName = els.spawnSkin.value;
+				const skinId = CHAMPION_SKINS[champ]?.[skinName];
+				const team = els.spawnTeam.value;
+				let cmd = `spawnbot ${champ} ${team} 1`;
+				if (skinId && skinName !== "Default") cmd += ` nSkinId=${skinId}`;
+				els.spawnPreview.value = cmd;
+			}
+
+			function copyToClipboard(text, label) {
+				if (!text) {
+					setStatus("Nothing to copy!", "warning");
+					return;
+				}
+				navigator.clipboard
+					.writeText(text)
+					.then(() => setStatus(`${label} copied`, "success"))
+					.catch(() => setStatus("Clipboard failed", "error"));
+			}
+
+			function buildQuickCommands() {
+				els.quickList.innerHTML = "";
+				QUICK_COMMANDS.forEach((q) => {
+					const div = document.createElement("div");
+					div.className = "quick-command";
+					div.innerHTML = `
+      <div class="quick-command-title">${q.name}</div>
+  <div class="command-output">
+        <input type="text" value="${q.command}" readonly aria-label="${q.name} command">
+        <button type="button" class="copy-btn">📋</button>
+      </div>
+    `;
+					div
+						.querySelector(".copy-btn")
+						.addEventListener("click", () =>
+							copyToClipboard(q.command, q.name),
+						);
+					els.quickList.appendChild(div);
+				});
+			}
+
+			/* Tab handling */
+			els.tabs.forEach((btn) => {
+				btn.addEventListener("click", () => {
+					els.tabs.forEach((t) => t.classList.remove("active"));
+					btn.classList.add("active");
+					const target = btn.dataset.tab;
+					els.tabContents.forEach((c) =>
+						c.classList.toggle("active", c.id === target),
+					);
+				});
+			});
+
+			/* Init */
+			document.addEventListener("DOMContentLoaded", () => {
+				fillSelect(els.mapSelect, Object.keys(VERIFIED_MAPS));
+				fillSelect(els.modeSelect, Object.keys(OFFLINE_GAMEMODES));
+				fillSelect(els.switchChamp, CHAMPIONS);
+				fillSelect(els.spawnChamp, CHAMPIONS);
+
+				updateVersionOptions();
+				updateSwitchSkins();
+				updateSpawnSkins();
+				buildQuickCommands();
+				setStatus("Ready", "info");
+
+				// events
+				els.mapSelect.addEventListener("change", updateVersionOptions);
+				els.versionSelect.addEventListener("change", updateOfflinePreview);
+				els.modeSelect.addEventListener("change", updateOfflinePreview);
+
+				els.switchChamp.addEventListener("change", updateSwitchSkins);
+				els.switchSkin.addEventListener("change", updateSwitchPreview);
+
+				els.spawnChamp.addEventListener("change", updateSpawnSkins);
+				els.spawnSkin.addEventListener("change", updateSpawnPreview);
+				els.spawnTeam.addEventListener("change", updateSpawnPreview);
+
+				els.copyOffline.addEventListener("click", () =>
+					copyToClipboard(els.offlinePreview.value, "Offline command"),
+				);
+				els.copySwitch.addEventListener("click", () =>
+					copyToClipboard(els.switchPreview.value, "Switch command"),
+				);
+				els.copySpawn.addEventListener("click", () =>
+					copyToClipboard(els.spawnPreview.value, "Spawn command"),
+				);
+			});
+		</script>
+	</body>
+</html>

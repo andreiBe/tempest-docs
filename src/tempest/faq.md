@@ -29,7 +29,7 @@ Make sure you've selected a `Build Directory`, this will define where the builds
 
 ## How do I host a server?
 
-1. Download the [TempestMp Mod](/tempest/changelogtmp) and the [Server DLL](https://cdn.discordapp.com/attachments/1377178319107129344/1390765366904360980/TempestMod57.dll?ex=686f616e&is=686e0fee&hm=77cb90f996aaf5dccf41db6a7ceb8b57096f53688288ce2770b8e9e746bfa17b&)
+1. Download the [TempestMp Mod](/tempest/changelogtmp) and the [Server DLL](https://github.com/LowRezStudio/Tempest/releases/tag/asmloader-1.0.0)
 2. Make sure you are logged in `RAdmin VPN`
    > The Network name is `paladinskana` and the Password is `kana123`
 3. Load the [TempestMp Mod](/tempest/changelogtmp) using the Mod Loader and make sure `Enable Console` is checked.
@@ -41,7 +41,7 @@ Make sure you've selected a `Build Directory`, this will define where the builds
    > As of right now, only `Siege` is supported.
    > :::
 5. As soon as the server log appears, pause it by selecting any text in the console window.
-6. Use an injector to inject the [Server DLL](https://cdn.discordapp.com/attachments/1377178319107129344/1390765366904360980/TempestMod57.dll?ex=686f616e&is=686e0fee&hm=77cb90f996aaf5dccf41db6a7ceb8b57096f53688288ce2770b8e9e746bfa17b&).
+6. Use an injector to inject the [Server DLL](https://github.com/LowRezStudio/Tempest/releases/tag/asmloader-1.0.0).
    > We recommend Cheat Engine or Process Hacker.
 7. Unpause the server by right clicking in the console window. You can then share your RAdmin ip to anyone.
 
